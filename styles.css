@@ -208,8 +208,7 @@ button:focus-visible {
     /* Removed top padding here because Header handles its own safe-area-top */
     padding-left: var(--safe-area-left);
     padding-right: var(--safe-area-right);
-    /* MOVED BACK: User prefers entire header to shift down, not just content */
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
     padding-bottom: var(--safe-area-bottom);
 }
 
@@ -221,14 +220,14 @@ button:focus-visible {
     align-items: center;
     justify-content: space-between;
     /* Normal padding, parent handles safe area */
-    padding-top: var(--spacing-md);
+    padding-top: calc(var(--spacing-md) + var(--safe-area-top));
     padding-bottom: var(--spacing-md);
     padding-left: var(--spacing-lg);
     padding-right: var(--spacing-lg);
     background-color: var(--color-bg-secondary);
     border-bottom: 1px solid var(--color-border);
     position: sticky;
-    top: var(--safe-area-top);
+    top: 0;
     z-index: 100;
 }
 

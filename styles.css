@@ -223,11 +223,12 @@ button:focus-visible {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    /* Use padding-top to respect safe area, plus original spacing */
-    padding-top: calc(var(--safe-area-top) + var(--spacing-md));
+    /* Fixed padding for Android status bar + camera notch */
+    /* 60px = status bar (~24px) + camera area (~20px) + spacing (16px) */
+    padding-top: 60px;
     padding-bottom: var(--spacing-md);
-    padding-left: calc(var(--safe-area-left) + var(--spacing-lg));
-    padding-right: calc(var(--safe-area-right) + var(--spacing-lg));
+    padding-left: var(--spacing-lg);
+    padding-right: var(--spacing-lg);
     background-color: var(--color-bg-secondary);
     border-bottom: 1px solid var(--color-border);
     position: sticky;

@@ -5,7 +5,7 @@
   "main": "script.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-android": "mkdir -p www && cp index.html styles.css script.js manifest.json service-worker.js www/ && npx cap sync android"
+    "build-android": "mkdir -p www && cp index.html styles.css script.js manifest.json service-worker.js www/ && npx @capacitor/assets generate --android && npx cap sync android"
   },
   "repository": {
     "type": "git",

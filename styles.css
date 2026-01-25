@@ -67,11 +67,11 @@
     --transition-normal: 200ms ease;
     --transition-slow: 300ms ease;
 
-    /* Safe Areas - Disabled for Immersive Mode */
-    --safe-area-top: 0px;
-    --safe-area-bottom: 0px;
-    --safe-area-left: 0px;
-    --safe-area-right: 0px;
+    /* Safe Areas - Enabled for Immersive Mode */
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
 
     /* Board sizing - Larger board */
     --board-size: min(92vw, 480px);
@@ -208,7 +208,7 @@ button:focus-visible {
     /* Removed top padding here because Header handles its own safe-area-top */
     padding-left: var(--safe-area-left);
     padding-right: var(--safe-area-right);
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
     padding-bottom: var(--safe-area-bottom);
 }
 
@@ -220,7 +220,7 @@ button:focus-visible {
     align-items: center;
     justify-content: space-between;
     /* Normal padding, parent handles safe area */
-    padding-top: var(--spacing-md);
+    padding-top: calc(var(--spacing-md) + var(--safe-area-top));
     padding-bottom: var(--spacing-md);
     padding-left: var(--spacing-lg);
     padding-right: var(--spacing-lg);

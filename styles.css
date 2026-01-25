@@ -67,8 +67,8 @@
     --transition-normal: 200ms ease;
     --transition-slow: 300ms ease;
 
-    /* Safe Areas - with safety fallback of 32px for notches/status bars */
-    --safe-area-top: max(env(safe-area-inset-top, 0px), 32px);
+    /* Safe Areas - Increased fallback to 64px to ensure it's NEVER covered */
+    --safe-area-top: max(env(safe-area-inset-top, 0px), 64px);
     --safe-area-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
     --safe-area-left: max(env(safe-area-inset-left, 0px), 0px);
     --safe-area-right: max(env(safe-area-inset-right, 0px), 0px);

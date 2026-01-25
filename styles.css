@@ -67,11 +67,11 @@
     --transition-normal: 200ms ease;
     --transition-slow: 300ms ease;
 
-    /* Safe Areas - with minimum fallbacks for broad compatibility */
-    --safe-area-top: env(safe-area-inset-top, 0px);
-    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-    --safe-area-left: env(safe-area-inset-left, 0px);
-    --safe-area-right: env(safe-area-inset-right, 0px);
+    /* Safe Areas - with safety fallback of 32px for notches/status bars */
+    --safe-area-top: max(env(safe-area-inset-top, 0px), 32px);
+    --safe-area-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
+    --safe-area-left: max(env(safe-area-inset-left, 0px), 0px);
+    --safe-area-right: max(env(safe-area-inset-right, 0px), 0px);
 
     /* Board sizing - Larger board */
     --board-size: min(92vw, 480px);

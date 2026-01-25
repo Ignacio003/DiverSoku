@@ -208,7 +208,8 @@ button:focus-visible {
     /* Removed top padding here because Header handles its own safe-area-top */
     padding-left: var(--safe-area-left);
     padding-right: var(--safe-area-right);
-    padding-top: 0;
+    /* MOVED BACK: User prefers entire header to shift down, not just content */
+    padding-top: var(--safe-area-top);
     padding-bottom: var(--safe-area-bottom);
 }
 
@@ -220,14 +221,14 @@ button:focus-visible {
     align-items: center;
     justify-content: space-between;
     /* Normal padding, parent handles safe area */
-    padding-top: calc(var(--spacing-md) + var(--safe-area-top));
+    padding-top: var(--spacing-md);
     padding-bottom: var(--spacing-md);
     padding-left: var(--spacing-lg);
     padding-right: var(--spacing-lg);
     background-color: var(--color-bg-secondary);
     border-bottom: 1px solid var(--color-border);
     position: sticky;
-    top: 0;
+    top: var(--safe-area-top);
     z-index: 100;
 }
 
@@ -822,12 +823,13 @@ button:focus-visible {
    ============================================ */
 @media (max-width: 768px) {
     .app-container {
-        padding-top: 0;
+        /* Restore padding to respect safe area */
     }
 
     .header {
         padding: var(--spacing-sm);
         position: relative;
+        top: 0;
     }
 
     .main-content {
@@ -1456,10 +1458,7 @@ button:focus-visible {
     }
 
     .game-info-bar {
-        padding: var(--spacing-sm);
-        gap: var(--spacing-md);
-        overflow-x: auto;
-        /* Handle overflow gracefully */
+        display: none;
     }
 
     .info-label {

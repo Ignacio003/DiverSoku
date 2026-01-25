@@ -32,7 +32,7 @@
 
     /* Board Colors */
     --color-cell-bg: #ffffff;
-    --color-cell-selected: rgba(99, 102, 241, 0.15);
+    --color-cell-selected: rgba(99, 102, 241, 0.25);
     --color-cell-highlighted: rgba(99, 102, 241, 0.08);
     --color-cell-same-number: rgba(99, 102, 241, 0.2);
     --color-cell-conflict: rgba(239, 68, 68, 0.15);
@@ -98,7 +98,7 @@
     --color-primary-medium: rgba(129, 140, 248, 0.25);
 
     --color-cell-bg: #1e293b;
-    --color-cell-selected: rgba(129, 140, 248, 0.2);
+    --color-cell-selected: rgba(129, 140, 248, 0.3);
     --color-cell-highlighted: rgba(129, 140, 248, 0.1);
     --color-cell-same-number: rgba(129, 140, 248, 0.25);
     --color-cell-conflict: rgba(239, 68, 68, 0.2);
@@ -289,8 +289,10 @@ button:focus-visible {
     transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 
-.icon-btn:hover {
-    background-color: var(--color-border);
+@media (hover: hover) {
+    .icon-btn:hover {
+        background-color: var(--color-border);
+    }
 }
 
 .icon-btn:active {
@@ -491,9 +493,11 @@ button:focus-visible {
     transition: all var(--transition-fast);
 }
 
-.action-btn:hover {
-    background-color: var(--color-bg-tertiary);
-    border-color: var(--color-border-strong);
+@media (hover: hover) {
+    .action-btn:hover {
+        background-color: var(--color-bg-tertiary);
+        border-color: var(--color-border-strong);
+    }
 }
 
 .action-btn:active {
@@ -539,12 +543,14 @@ button:focus-visible {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.num-btn:hover {
-    background: linear-gradient(180deg, var(--color-primary-light) 0%, var(--color-primary-medium) 100%);
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+@media (hover: hover) {
+    .num-btn:hover {
+        background: linear-gradient(180deg, var(--color-primary-light) 0%, var(--color-primary-medium) 100%);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+    }
 }
 
 .num-btn:active {
@@ -629,8 +635,10 @@ button:focus-visible {
     transition: background-color var(--transition-fast);
 }
 
-.modal-close:hover {
-    background-color: var(--color-bg-tertiary);
+@media (hover: hover) {
+    .modal-close:hover {
+        background-color: var(--color-bg-tertiary);
+    }
 }
 
 .modal-close svg {
@@ -665,9 +673,11 @@ button:focus-visible {
     transition: all var(--transition-fast);
 }
 
-.difficulty-btn:hover {
-    background-color: var(--color-primary-light);
-    transform: translateX(4px);
+@media (hover: hover) {
+    .difficulty-btn:hover {
+        background-color: var(--color-primary-light);
+        transform: translateX(4px);
+    }
 }
 
 .difficulty-name {
@@ -808,9 +818,11 @@ button:focus-visible {
     transition: all var(--transition-fast);
 }
 
-.reset-stats-btn:hover {
-    background-color: var(--color-error);
-    color: white;
+@media (hover: hover) {
+    .reset-stats-btn:hover {
+        background-color: var(--color-error);
+        color: white;
+    }
 }
 
 /* Victory Modal */
@@ -1040,9 +1052,11 @@ button:focus-visible {
     color: white;
 }
 
-.victory-btn.primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+@media (hover: hover) {
+    .victory-btn.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
 }
 
 .victory-btn.secondary {
@@ -1050,8 +1064,10 @@ button:focus-visible {
     color: var(--color-text-primary);
 }
 
-.victory-btn.secondary:hover {
-    background-color: var(--color-border);
+@media (hover: hover) {
+    .victory-btn.secondary:hover {
+        background-color: var(--color-border);
+    }
 }
 
 /* ============================================
@@ -1458,15 +1474,18 @@ button:focus-visible {
     }
 
     .game-info-bar {
-        display: none;
+        padding: var(--spacing-xs);
+        gap: var(--spacing-sm);
+        overflow-x: auto;
+        /* Handle overflow gracefully */
     }
 
     .info-label {
-        font-size: 0.6rem;
+        font-size: 0.55rem;
     }
 
     .info-value {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
     }
 
     .number-pad {

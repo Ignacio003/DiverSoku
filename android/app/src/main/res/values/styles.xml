@@ -13,14 +13,10 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
-        <item name="android:fitsSystemWindows">true</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
     </style>
 
-    <!-- Launch theme WITHOUT SplashScreen to avoid edge-to-edge -->
-    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
+    <!-- Splash screen launch theme -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
-        <item name="android:fitsSystemWindows">true</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
     </style>
 </resources>

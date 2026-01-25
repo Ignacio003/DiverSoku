@@ -1,0 +1,41 @@
+{
+    "name": "Sudoku",
+    "short_name": "Sudoku",
+    "description": "El juego de lógica Sudoku definitivo. Juega gratis con múltiples niveles de dificultad.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f8fafc",
+    "theme_color": "#6366f1",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "es",
+    "categories": ["games", "puzzle"],
+    "icons": [
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='102' fill='%236366f1'/><text x='256' y='350' font-size='280' text-anchor='middle' fill='white' font-family='system-ui' font-weight='bold'>9</text></svg>",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='102' fill='%236366f1'/><text x='256' y='350' font-size='280' text-anchor='middle' fill='white' font-family='system-ui' font-weight='bold'>9</text></svg>",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "maskable"
+        },
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='38' fill='%236366f1'/><text x='96' y='132' font-size='105' text-anchor='middle' fill='white' font-family='system-ui' font-weight='bold'>9</text></svg>",
+            "sizes": "192x192",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='38' fill='%236366f1'/><text x='96' y='132' font-size='105' text-anchor='middle' fill='white' font-family='system-ui' font-weight='bold'>9</text></svg>",
+            "sizes": "192x192",
+            "type": "image/svg+xml",
+            "purpose": "maskable"
+        }
+    ],
+    "screenshots": [],
+    "prefer_related_applications": false
+}

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="description"
+        content="Sudoku - El juego de lógica definitivo. Juega gratis online con múltiples niveles de dificultad.">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Sudoku">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Favicon & Icons -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%236366f1'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-family='system-ui' font-weight='bold'>9</text></svg>">
+    <link rel="apple-touch-icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%236366f1'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-family='system-ui' font-weight='bold'>9</text></svg>">
+
+    <title>Sudoku</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="logo">Sudoku</h1>
+                <div class="score-display" id="score-display">
+                    <svg class="score-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                    <span id="current-score">0</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="timer" id="timer">
+                    <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12,6 12,12 16,14" />
+                    </svg>
+                    <span id="timer-display">00:00</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="icon-btn" id="new-game-btn" aria-label="Nuevo Juego">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 4v6h-6" />
+                        <path d="M1 20v-6h6" />
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                    </svg>
+                </button>
+
+                <button class="icon-btn" id="settings-btn" aria-label="Ajustes">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="game-container">
+                <!-- Game Info Bar -->
+                <div class="game-info-bar">
+                    <div class="info-item difficulty-display">
+                        <span class="info-label">Dificultad</span>
+                        <span class="info-value" id="current-difficulty">Medio</span>
+                    </div>
+                    <div class="info-item record-display">
+                        <span class="info-label">Mejor Tiempo</span>
+                        <span class="info-value" id="best-time">-</span>
+                    </div>
+                    <div class="info-item record-display">
+                        <span class="info-label">Mejor Puntaje</span>
+                        <span class="info-value" id="best-score">-</span>
+                    </div>
+                </div>
+
+                <!-- Game Area -->
+                <div class="game-area">
+                    <!-- Sudoku Board -->
+                    <div class="board-container">
+                        <div class="sudoku-board" id="sudoku-board">
+                            <!-- Cells will be generated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Controls Panel -->
+                    <div class="controls-panel">
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            <button class="action-btn" id="undo-btn" aria-label="Deshacer">
+                                <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M3 7v6h6" />
+                                    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+                                </svg>
+                                <span>Deshacer</span>
+                            </button>
+                            <button class="action-btn" id="erase-btn" aria-label="Borrar">
+                                <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M20 5H9l-7 7 7 7h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z" />
+                                    <line x1="18" y1="9" x2="12" y2="15" />
+                                    <line x1="12" y1="9" x2="18" y2="15" />
+                                </svg>
+                                <span>Borrar</span>
+                            </button>
+                            <button class="action-btn" id="pencil-btn" aria-label="Modo lápiz">
+                                <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                                </svg>
+                                <span>Notas</span>
+                            </button>
+                            <button class="action-btn" id="hint-btn" aria-label="Pista">
+                                <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                                </svg>
+                                <span>Pista</span>
+                            </button>
+                        </div>
+
+                        <!-- Number Pad -->
+                        <div class="number-pad" id="number-pad">
+                            <button class="num-btn" data-number="1">1</button>
+                            <button class="num-btn" data-number="2">2</button>
+                            <button class="num-btn" data-number="3">3</button>
+                            <button class="num-btn" data-number="4">4</button>
+                            <button class="num-btn" data-number="5">5</button>
+                            <button class="num-btn" data-number="6">6</button>
+                            <button class="num-btn" data-number="7">7</button>
+                            <button class="num-btn" data-number="8">8</button>
+                            <button class="num-btn" data-number="9">9</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+
+    </div>
+
+    <!-- Modal: New Game -->
+    <div class="modal-overlay" id="new-game-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Nuevo Juego</h2>
+                <button class="modal-close" id="close-new-game-modal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-text">Selecciona el nivel de dificultad:</p>
+                <div class="difficulty-buttons">
+                    <button class="difficulty-btn" data-difficulty="easy">
+                        <span class="difficulty-name">Fácil</span>
+                        <span class="difficulty-desc">38 números iniciales</span>
+                    </button>
+                    <button class="difficulty-btn" data-difficulty="medium">
+                        <span class="difficulty-name">Medio</span>
+                        <span class="difficulty-desc">32 números iniciales</span>
+                    </button>
+                    <button class="difficulty-btn" data-difficulty="hard">
+                        <span class="difficulty-name">Difícil</span>
+                        <span class="difficulty-desc">28 números iniciales</span>
+                    </button>
+                    <button class="difficulty-btn" data-difficulty="expert">
+                        <span class="difficulty-name">Experto</span>
+                        <span class="difficulty-desc">24 números iniciales</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Settings -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Ajustes</h2>
+                <button class="modal-close" id="close-settings-modal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-list">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-name">Mostrar conflictos</span>
+                            <span class="setting-desc">Resaltar números inválidos en rojo</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="show-conflicts" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-name">Resaltar iguales</span>
+                            <span class="setting-desc">Resaltar números iguales al seleccionado</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="highlight-same" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-name">Resaltar área</span>
+                            <span class="setting-desc">Resaltar fila, columna y caja</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="highlight-area" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-name">Habilitar Pistas</span>
+                            <span class="setting-desc">Mostrar botón de pista (con penalización)</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="enable-hints">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-name">Auto-borrar notas</span>
+                            <span class="setting-desc">Borrar notas al colocar un número</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="auto-remove-notes" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-name">Modo Oscuro</span>
+                            <span class="setting-desc">Alternar entre tema claro y oscuro</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="theme-toggle-setting">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Estadísticas</h3>
+                    <div class="stats-grid" id="stats-grid">
+                        <!-- Stats will be populated by JavaScript -->
+                    </div>
+                </div>
+                <button class="reset-stats-btn" id="reset-stats-btn">Reiniciar Estadísticas</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Victory -->
+    <div class="modal-overlay" id="victory-modal">
+        <div class="modal victory-modal">
+            <div class="victory-content">
+                <div class="victory-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                </div>
+                <h2 class="victory-title">¡Felicidades!</h2>
+                <p class="victory-message">Has completado el Sudoku</p>
+                <div class="victory-stats">
+                    <div class="victory-stat">
+                        <span class="victory-stat-label">Puntos</span>
+                        <span class="victory-stat-value" id="victory-score">0</span>
+                    </div>
+                    <div class="victory-stat">
+                        <span class="victory-stat-label">Tiempo</span>
+                        <span class="victory-stat-value" id="victory-time">00:00</span>
+                    </div>
+                    <div class="victory-stat">
+                        <span class="victory-stat-label">Dificultad</span>
+                        <span class="victory-stat-value" id="victory-difficulty">Medio</span>
+                    </div>
+                </div>
+                <div class="victory-record" id="victory-record" style="display: none;">
+                    <span class="record-badge">🏆 ¡Nuevo Récord Personal!</span>
+                </div>
+                <div class="victory-actions">
+                    <button class="victory-btn primary" id="play-again-btn">Jugar de Nuevo</button>
+                    <button class="victory-btn secondary" id="share-btn">Compartir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

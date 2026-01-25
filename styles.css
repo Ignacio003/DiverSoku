@@ -67,13 +67,11 @@
     --transition-normal: 200ms ease;
     --transition-slow: 300ms ease;
 
-    /* Safe Areas - with minimum fallback values for Android */
-    /* Use max() to ensure minimum padding even when safe-area-inset is 0 */
-    /* 48px covers status bar (~24px) + extra for camera cutouts on phones like Samsung S25 */
-    --safe-area-top: max(env(safe-area-inset-top, 0px), 48px);
-    --safe-area-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
-    --safe-area-left: max(env(safe-area-inset-left, 0px), 0px);
-    --safe-area-right: max(env(safe-area-inset-right, 0px), 0px);
+    /* Safe Areas - Modern implementation */
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
 
     /* Board sizing - Larger board */
     --board-size: min(92vw, 480px);
@@ -223,12 +221,12 @@ button:focus-visible {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    /* Fixed padding for Android status bar + camera notch */
-    /* 60px = status bar (~24px) + camera area (~20px) + spacing (16px) */
-    padding-top: 60px;
+    /* Using calc to ensure content is below status bar icons */
+    /* Typically status bar is ~24px to 40px depending on device */
+    padding-top: calc(var(--safe-area-top) + var(--spacing-md));
     padding-bottom: var(--spacing-md);
-    padding-left: var(--spacing-lg);
-    padding-right: var(--spacing-lg);
+    padding-left: calc(var(--safe-area-left) + var(--spacing-lg));
+    padding-right: calc(var(--safe-area-right) + var(--spacing-lg));
     background-color: var(--color-bg-secondary);
     border-bottom: 1px solid var(--color-border);
     position: sticky;
@@ -576,7 +574,10 @@ button:focus-visible {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--spacing-lg);
+    padding-top: calc(var(--safe-area-top) + var(--spacing-md));
+    padding-bottom: calc(var(--safe-area-bottom) + var(--spacing-md));
+    padding-left: calc(var(--safe-area-left) + var(--spacing-md));
+    padding-right: calc(var(--safe-area-right) + var(--spacing-md));
     z-index: 1000;
     opacity: 0;
     visibility: hidden;

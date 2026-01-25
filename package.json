@@ -1,5 +1,5 @@
 {
-  "name": "sudoku",
+  "name": "diversoku",
   "version": "1.0.0",
   "description": "",
   "main": "script.js",
@@ -9,16 +9,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ignacio003/Sudoku.git"
+    "url": "git+https://github.com/Ignacio003/DiverSoku.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/Ignacio003/Sudoku/issues"
+    "url": "https://github.com/Ignacio003/DiverSoku/issues"
   },
-  "homepage": "https://github.com/Ignacio003/Sudoku#readme",
+  "homepage": "https://github.com/Ignacio003/DiverSoku#readme",
   "dependencies": {
     "@capacitor/android": "^8.0.1",
     "@capacitor/assets": "^3.0.5",

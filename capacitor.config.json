@@ -1,6 +1,6 @@
 {
   "appId": "com.sudoku.game",
-  "appName": "Sudoku",
+  "appName": "DiverSoku",
   "webDir": "www",
   "plugins": {
     "StatusBar": {

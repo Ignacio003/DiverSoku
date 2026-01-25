@@ -1,11 +1,3 @@
-/**
- * ============================================
- * SUDOKU - JavaScript Game Logic
- * Complete implementation with generator, solver,
- * points system, and all UI interactions
- * ============================================
- */
-
 // ============================================
 // Game State & Configuration
 // ============================================

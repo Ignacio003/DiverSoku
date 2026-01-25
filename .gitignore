@@ -1,0 +1,16 @@
+# Node
+node_modules/
+npm-debug.log
+
+# Mac
+.DS_Store
+
+# Capacitor/Android generated web assets
+www/
+
+# Android
+android/app/build/
+android/.gradle/
+android/local.properties
+android/*.iml
+android/.idea/

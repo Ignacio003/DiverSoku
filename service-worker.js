@@ -5,7 +5,7 @@
  * ============================================
  */
 
-const CACHE_NAME = 'diversoku-cache-v2';
+const CACHE_NAME = 'diversoku-cache-v3';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',

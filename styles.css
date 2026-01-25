@@ -67,11 +67,11 @@
     --transition-normal: 200ms ease;
     --transition-slow: 300ms ease;
 
-    /* Safe Areas - Increased fallback to 64px to ensure it's NEVER covered */
-    --safe-area-top: max(env(safe-area-inset-top, 0px), 64px);
-    --safe-area-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
-    --safe-area-left: max(env(safe-area-inset-left, 0px), 0px);
-    --safe-area-right: max(env(safe-area-inset-right, 0px), 0px);
+    /* Safe Areas - Disabled for Immersive Mode */
+    --safe-area-top: 0px;
+    --safe-area-bottom: 0px;
+    --safe-area-left: 0px;
+    --safe-area-right: 0px;
 
     /* Board sizing - Larger board */
     --board-size: min(92vw, 480px);

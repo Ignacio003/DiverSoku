@@ -21,7 +21,9 @@
   "homepage": "https://github.com/Ignacio003/Sudoku#readme",
   "dependencies": {
     "@capacitor/android": "^8.0.1",
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.0.1",
-    "@capacitor/core": "^8.0.1"
+    "@capacitor/core": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.0"
   }
 }

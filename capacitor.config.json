@@ -1,5 +1,11 @@
 {
   "appId": "com.sudoku.game",
   "appName": "Sudoku",
-  "webDir": "www"
+  "webDir": "www",
+  "plugins": {
+    "StatusBar": {
+      "overlaysWebView": true,
+      "style": "DARK"
+    }
+  }
 }

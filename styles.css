@@ -1421,6 +1421,67 @@ button:focus-visible {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
 }
 
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+    .header {
+        padding-left: var(--spacing-sm);
+        padding-right: var(--spacing-sm);
+        gap: var(--spacing-xs);
+    }
+
+    .logo {
+        font-size: 1.1rem;
+    }
+
+    .score-display,
+    .timer {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.85rem;
+    }
+
+    .score-icon,
+    .timer-icon {
+        width: 14px;
+        height: 14px;
+    }
+
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .game-info-bar {
+        padding: var(--spacing-sm);
+        gap: var(--spacing-md);
+        overflow-x: auto;
+        /* Handle overflow gracefully */
+    }
+
+    .info-label {
+        font-size: 0.6rem;
+    }
+
+    .info-value {
+        font-size: 0.85rem;
+    }
+
+    .number-pad {
+        gap: 4px;
+        padding: var(--spacing-sm);
+    }
+
+    .num-btn {
+        min-width: 36px;
+        min-height: 36px;
+        font-size: 1.1rem;
+    }
+}
+
 /* Print styles */
 @media print {
 

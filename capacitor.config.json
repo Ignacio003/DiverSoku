@@ -4,10 +4,10 @@
   "webDir": "www",
   "plugins": {
     "StatusBar": {
-      "visible": false,
+      "visible": true,
       "overlaysWebView": true,
       "style": "DARK",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#00000000"
     }
   }
 }

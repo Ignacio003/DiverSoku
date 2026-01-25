@@ -67,7 +67,7 @@
     --transition-normal: 200ms ease;
     --transition-slow: 300ms ease;
 
-    /* Safe Areas - Modern implementation */
+    /* Safe Areas - with minimum fallbacks for broad compatibility */
     --safe-area-top: env(safe-area-inset-top, 0px);
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
     --safe-area-left: env(safe-area-inset-left, 0px);
@@ -221,8 +221,7 @@ button:focus-visible {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    /* Using calc to ensure content is below status bar icons */
-    /* Typically status bar is ~24px to 40px depending on device */
+    /* Base padding + safe area if active */
     padding-top: calc(var(--safe-area-top) + var(--spacing-md));
     padding-bottom: var(--spacing-md);
     padding-left: calc(var(--safe-area-left) + var(--spacing-lg));

@@ -106,7 +106,7 @@ function initPuzzleWorker() {
             const { type, difficulty, puzzle, solution, analysis } = e.data;
             if (type === 'result') {
                 if (!puzzlePool[difficulty]) puzzlePool[difficulty] = [];
-                puzzlePool[difficulty].push({ puzzle, solution });
+                puzzlePool[difficulty].push({ puzzle, solution, analysis });
                 savePool(); // Save to localStorage
                 console.log(
                     `[DiverSoku] Pool: ${difficulty} listo ` +
@@ -116,6 +116,9 @@ function initPuzzleWorker() {
                 );
                 // Keep pool stocked: maintain 2 puzzles per difficulty
                 replenishPool(difficulty);
+
+                // If pool is full, maybe hunt for special techniques?
+                checkAndHuntSwordfish(difficulty);
             }
         };
         puzzleWorker.onerror = function (err) {
@@ -146,6 +149,8 @@ function initPuzzleWorker() {
             // If empty or low, request more
             if (puzzlePool[diff].length < 2) {
                 requestPuzzleFromWorker(diff);
+            } else {
+                checkAndHuntSwordfish(diff);
             }
         }
     } catch (err) {
@@ -155,7 +160,7 @@ function initPuzzleWorker() {
 }
 
 /** Request one puzzle from the Worker. */
-function requestPuzzleFromWorker(difficulty) {
+function requestPuzzleFromWorker(difficulty, options = {}) {
     if (!puzzleWorker) return;
     const config = SudokuGame.difficultyConfig[difficulty];
     puzzleWorker.postMessage({
@@ -164,9 +169,54 @@ function requestPuzzleFromWorker(difficulty) {
         config: {
             minRemove: config.minRemove,
             maxRemove: config.maxRemove,
-            maxLevel: config.maxLevel
+            maxLevel: config.maxLevel,
+            requiredTechnique: options.requiredTechnique // Pass requirement
         }
     });
+}
+
+function checkAndHuntSwordfish(difficulty) {
+    // Only hunt in Extreme/Master and if pool is healthy
+    if (difficulty !== 'extreme' && difficulty !== 'master') return;
+    if (!puzzlePool[difficulty] || puzzlePool[difficulty].length < 2) return;
+
+    // - Extreme: Hunt for Swordfish (or XY-Wing, but Swordfish is rarer)
+    // - Master: Hunt for Unique Rectangle (since X-Wing is common)
+
+    let targetTech = '';
+    if (difficulty === 'extreme') targetTech = 'Swordfish';
+    if (difficulty === 'master') {
+        // Alternate between UR and Skyscraper to fill pool faster and with variety
+        // Pick random one for this request
+        targetTech = Math.random() > 0.5 ? 'Unique Rectangle' : 'Skyscraper';
+    }
+
+    // Check if we already have it
+    // Actually, for master we just want *any* special tech if we are low on them?
+    // Or just hunt for what's missing?
+    // Let's keep it simple: Hunt for what we selected essentially.
+
+    // But better logic: Check what is missing from pool!
+    if (difficulty === 'master') {
+        const hasUR = puzzlePool[difficulty].some(p => p.analysis.techniquesUsed.includes('Unique Rectangle'));
+        const hasSky = puzzlePool[difficulty].some(p => p.analysis.techniquesUsed.includes('Skyscraper'));
+
+        if (!hasUR) targetTech = 'Unique Rectangle';
+        else if (!hasSky) targetTech = 'Skyscraper';
+        else return; // We have both, no need to hunt specific
+    }
+
+    const hasTechnique = puzzlePool[difficulty].some(p =>
+        p.analysis && p.analysis.techniquesUsed && p.analysis.techniquesUsed.includes(targetTech)
+    );
+
+    if (!hasTechnique) {
+        // Limit pool size to avoidance memory/spam issues, but keep trying if missing technique
+        if (puzzlePool[difficulty].length < 10) {
+            console.log(`[DiverSoku] Buscando especial para ${difficulty}: ${targetTech}....`);
+            requestPuzzleFromWorker(difficulty, { requiredTechnique: targetTech });
+        }
+    }
 }
 
 /** Refill pool if below threshold. */
@@ -214,6 +264,7 @@ async function generatePuzzle(difficulty) {
         console.log(`[DiverSoku] Puzzle desde pool (instantáneo) — ${difficulty}`);
         // Immediately request a replacement
         replenishPool(difficulty);
+        checkAndHuntSwordfish(difficulty);
         return cached;
     }
 

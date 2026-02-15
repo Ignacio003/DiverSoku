@@ -739,10 +739,11 @@ function solvePuzzleWithLogic(board2D) {
         }
     }
 
-    const stats = { maxLevel: 0, techniquesUsed: new Set() };
+    const stats = { maxLevel: 0, techniquesUsed: new Set(), counts: {} };
     const techMap = {
         1: 'Naked Single', 2: 'Hidden Single', 3: 'Naked/Hidden Subsets',
-        4: 'Pointing Pairs', 5: 'X-Wing', 6: 'Swordfish', 7: 'XY-Wing'
+        4: 'Pointing Pairs', 5: 'X-Wing', 6: 'Swordfish', 7: 'XY-Wing',
+        5.1: 'Unique Rectangle' // Treat as Level 5 variant
     };
 
     let stuck = false;
@@ -759,13 +760,25 @@ function solvePuzzleWithLogic(board2D) {
 
         // Expensive
         if (applyXWing(board, candidates)) { level(5); stuck = false; continue; }
+        if (applyUniqueRectangleType1(board, candidates)) { level(5.1); stuck = false; continue; } // New Master technique
         if (applySwordfish(board, candidates)) { level(6); stuck = false; continue; }
         if (applyXYWing(board, candidates)) { level(7); stuck = false; continue; }
     }
 
     function level(l) {
-        if (l > stats.maxLevel) stats.maxLevel = l;
+        const intL = Math.floor(l); // 5.1 -> 5 for maxLevel calc
+        if (intL > stats.maxLevel) stats.maxLevel = intL;
         stats.techniquesUsed.add(techMap[l]);
+        stats.counts[intL] = (stats.counts[intL] || 0) + 1;
+    }
+
+    // Promote difficulty if too complex (e.g. many X-Wings or URs)
+    const highTechCount = (stats.counts[5] || 0) + (stats.counts[6] || 0); // X-Wing/UR + Swordfish
+    if (highTechCount >= 3) { // Threshold: 3+ steps of X-Wing/Swordfish = Extreme Feel
+        if (stats.maxLevel < 7) {
+            stats.maxLevel = 7;
+            stats.techniquesUsed.add('High Complexity');
+        }
     }
 
     let solved = true;
@@ -773,11 +786,252 @@ function solvePuzzleWithLogic(board2D) {
     return { solved, maxLevel: stats.maxLevel, techniquesUsed: [...stats.techniquesUsed] };
 }
 
+/** Unique Rectangle Type 1 (Optimized) */
+function applyUniqueRectangleType1(board, candidates) {
+    let progress = false;
+
+    // 1. Collect all cells with exactly 2 candidates (Bi-Value Cells)
+    const bivalueCells = [];
+    for (let i = 0; i < 81; i++) {
+        if (board[i] === 0 && popcount(candidates[i]) === 2) {
+            bivalueCells.push(i);
+        }
+    }
+
+    // 2. Iterate pairs of Bi-Value cells to find potential "Floor" of UR
+    for (let i = 0; i < bivalueCells.length; i++) {
+        for (let j = i + 1; j < bivalueCells.length; j++) {
+            const idx1 = bivalueCells[i];
+            const idx2 = bivalueCells[j];
+
+            // Must have SAME candidates
+            if (candidates[idx1] !== candidates[idx2]) continue;
+
+            const r1 = Math.floor(idx1 / 9), c1 = idx1 % 9;
+            const r2 = Math.floor(idx2 / 9), c2 = idx2 % 9;
+
+            // Must share either Row or Col (but not both, i.e., not same cell)
+            const sameRow = r1 === r2;
+            const sameCol = c1 === c2;
+
+            if (!sameRow && !sameCol) continue; // Diagonal relationship -> Not a direct side
+
+            // Calculate floor coordinates and properties
+            const m = candidates[idx1];
+
+            // Case 1: Floor is in same Row (r1 == r2)
+            if (sameRow) {
+                // c1 and c2 are fixed. We need to find another row 'r3'
+                for (let r3 = 0; r3 < 9; r3++) {
+                    if (r3 === r1) continue;
+                    const idx3 = r3 * 9 + c1;
+                    const idx4 = r3 * 9 + c2;
+
+                    if (board[idx3] || board[idx4]) continue;
+
+                    const m3 = candidates[idx3];
+                    const m4 = candidates[idx4];
+
+                    // Check simple geometry
+                    // UR must span exactly 2 blocks.
+                    // If sameRow logic (r1==r2, r3==rr3):
+                    // B1 and B2 must be different (so cols span 2 blocks).
+                    // B3 must correspond to B1, B4 to B2.
+                    const b1 = Math.floor(r1 / 3) * 3 + Math.floor(c1 / 3);
+                    const b2 = Math.floor(r1 / 3) * 3 + Math.floor(c2 / 3);
+                    const b3 = Math.floor(r3 / 3) * 3 + Math.floor(c1 / 3);
+                    const b4 = Math.floor(r3 / 3) * 3 + Math.floor(c2 / 3);
+
+                    // Logic: UR is valid if (b1 == b3) AND (b2 == b4) AND (b1 != b2)
+                    // (Vertical rectangle where left side is in one block-col, right side in another)
+                    if (b1 !== b3 || b2 !== b4 || b1 === b2) continue;
+
+                    if (m3 === m && (m4 & m) === m && m4 !== m) {
+                        // idx4 is the target (Type 1)
+                        candidates[idx4] &= ~m;
+                        progress = true;
+                    } else if (m4 === m && (m3 & m) === m && m3 !== m) {
+                        candidates[idx3] &= ~m;
+                        progress = true;
+                    }
+                }
+            }
+            // Case 2: Floor is in same Col (c1 == c2)
+            else if (sameCol) {
+                for (let c3 = 0; c3 < 9; c3++) {
+                    if (c3 === c1) continue;
+                    const idx3 = r1 * 9 + c3;
+                    const idx4 = r2 * 9 + c3;
+
+                    if (board[idx3] || board[idx4]) continue;
+
+                    const m3 = candidates[idx3];
+                    const m4 = candidates[idx4];
+                    // Check Block Geometry for sameCol case (c1==c2, c3==c3)
+                    // Floor is (r1, c1) and (r2, c1). Roof is (r1, c3) and (r2, c3).
+                    // r1 and r2 must be in different blocks => b1 != b2.
+                    // b3 must match b1 (same row-block), b4 match b2.
+                    const b1 = Math.floor(r1 / 3) * 3 + Math.floor(c1 / 3);
+                    const b2 = Math.floor(r2 / 3) * 3 + Math.floor(c1 / 3); // idx2
+                    const b3 = Math.floor(r1 / 3) * 3 + Math.floor(c3 / 3); // idx3
+                    const b4 = Math.floor(r2 / 3) * 3 + Math.floor(c3 / 3); // idx4
+
+                    // Logic: UR is valid if (b1 == b3) AND (b2 == b4) AND (b1 != b2)
+                    // (Horizontal rectangle where top side is in one row-block, bottom in another)
+                    if (b1 !== b3 || b2 !== b4 || b1 === b2) continue;
+
+                    if (m3 === m && (m4 & m) === m && m4 !== m) {
+                        candidates[idx4] &= ~m;
+                        progress = true;
+                    } else if (m4 === m && (m3 & m) === m && m3 !== m) {
+                        candidates[idx3] &= ~m;
+                        progress = true;
+                    }
+                }
+            }
+        }
+    }
+    return progress;
+}
+
+/** Skyscraper (Level 5) */
+function applySkyscraper(board, candidates) {
+    let progress = false;
+
+    // Check for each number 1-9
+    for (let n = 0; n < 9; n++) {
+        const bit = 1 << n;
+
+        // Find rows with exactly 2 candidates for 'n'
+        const rowLocs = []; // array of { r, cols: [c1, c2] }
+        for (let r = 0; r < 9; r++) {
+            const cols = [];
+            for (let c = 0; c < 9; c++) {
+                if (board[r * 9 + c] === 0 && (candidates[r * 9 + c] & bit)) {
+                    cols.push(c);
+                }
+            }
+            if (cols.length === 2) rowLocs.push({ r, cols });
+        }
+
+        // Find Skyscraper in Rows
+        for (let i = 0; i < rowLocs.length; i++) {
+            for (let j = i + 1; j < rowLocs.length; j++) {
+                const r1 = rowLocs[i].r;
+                const r2 = rowLocs[j].r;
+                const c1_a = rowLocs[i].cols[0], c1_b = rowLocs[i].cols[1];
+                const c2_a = rowLocs[j].cols[0], c2_b = rowLocs[j].cols[1];
+
+                // We need exactly ONE column match (the "base")
+                // Possible matches: (c1_a == c2_a), (c1_a == c2_b), (c1_b == c2_a), (c1_b == c2_b)
+                let baseCol = -1;
+                let topCol1 = -1, topCol2 = -1;
+
+                if (c1_a === c2_a) { baseCol = c1_a; topCol1 = c1_b; topCol2 = c2_b; }
+                else if (c1_a === c2_b) { baseCol = c1_a; topCol1 = c1_b; topCol2 = c2_a; }
+                else if (c1_b === c2_a) { baseCol = c1_b; topCol1 = c1_a; topCol2 = c2_b; }
+                else if (c1_b === c2_b) { baseCol = c1_b; topCol1 = c1_a; topCol2 = c2_a; }
+
+                if (baseCol !== -1) {
+                    // Valid Skyscraper base found at baseCol.
+                    // Tops are at (r1, topCol1) and (r2, topCol2).
+                    // Eliminate 'n' from cells that see BOTH tops.
+
+                    // Cells that see both tops must be:
+                    // 1. In same col as topCol1 And same row as r2? No.
+                    // 2. We intersect peers of Top1 and Top2.
+                    const top1 = r1 * 9 + topCol1;
+                    const top2 = r2 * 9 + topCol2;
+
+                    // Optimization: Check the intersection of peers
+                    // Intersection of (r1, topCol1) and (r2, topCol2) usually involves:
+                    // - If topCol1 == topCol2 (Parallel Skyscraper / Sashimi X-Wing?):
+                    //   Then they share a column -> Normal X-Wing if base also matches (which it doesn't here).
+                    //   If topCol1 == topCol2, then baseCol is different.
+                    //   This is actually a Turbot Fish pattern but effectively 2-String Kite logic or simple Skyscraper.
+                    //   Cells in col topCol1 eliminate.
+
+                    // Standard Skyscraper: baseCol is aligned. topCol1 != topCol2.
+                    // Eliminate from: 
+                    // - Cell (r2, topCol1) -> sees Top1 (row) and Top2 (col? no).
+                    // - Cell (r1, topCol2) -> sees Top1 (col?? no) and Top2 (row).
+                    // Wait, Top1 is (r1, cA), Top2 is (r2, cB).
+                    // Seen by (r2, cA)? Yes, sees Top1 (col? no, Top1 is r1,cA. Cell is r2, cA. same col!)
+                    //                   Sees Top2 (r2, cB)? Yes, same row.
+                    // Seen by (r1, cB)? Yes, sees Top1 (same row), sees Top2 (same col).
+
+                    const target1 = r2 * 9 + topCol1;
+                    const target2 = r1 * 9 + topCol2;
+
+                    if (board[target1] === 0 && (candidates[target1] & bit)) {
+                        candidates[target1] &= ~bit;
+                        progress = true;
+                    }
+                    if (board[target2] === 0 && (candidates[target2] & bit)) {
+                        candidates[target2] &= ~bit;
+                        progress = true;
+                    }
+
+                    // Also need to check block intersections if applicable?
+                    // Typically simple row/col intersection is enough for Skyscraper.
+                }
+            }
+        }
+
+        // Find Skyscraper in Cols (Symmetric)
+        const colLocs = [];
+        for (let c = 0; c < 9; c++) {
+            const rows = [];
+            for (let r = 0; r < 9; r++) {
+                if (board[r * 9 + c] === 0 && (candidates[r * 9 + c] & bit)) {
+                    rows.push(r);
+                }
+            }
+            if (rows.length === 2) colLocs.push({ c, rows });
+        }
+
+        for (let i = 0; i < colLocs.length; i++) {
+            for (let j = i + 1; j < colLocs.length; j++) {
+                const c1 = colLocs[i].c;
+                const c2 = colLocs[j].c;
+                const r1_a = colLocs[i].rows[0], r1_b = colLocs[i].rows[1];
+                const r2_a = colLocs[j].rows[0], r2_b = colLocs[j].rows[1];
+
+                let baseRow = -1;
+                let topRow1 = -1, topRow2 = -1;
+
+                if (r1_a === r2_a) { baseRow = r1_a; topRow1 = r1_b; topRow2 = r2_b; }
+                else if (r1_a === r2_b) { baseRow = r1_a; topRow1 = r1_b; topRow2 = r2_a; }
+                else if (r1_b === r2_a) { baseRow = r1_b; topRow1 = r1_a; topRow2 = r2_b; }
+                else if (r1_b === r2_b) { baseRow = r1_b; topRow1 = r1_a; topRow2 = r2_a; }
+
+                if (baseRow !== -1) {
+                    // Base in Row 'baseRow'.
+                    // Top1 at (topRow1, c1), Top2 at (topRow2, c2).
+                    // Targets: (topRow1, c2) and (topRow2, c1).
+                    const target1 = topRow1 * 9 + c2;
+                    const target2 = topRow2 * 9 + c1;
+
+                    if (board[target1] === 0 && (candidates[target1] & bit)) {
+                        candidates[target1] &= ~bit;
+                        progress = true;
+                    }
+                    if (board[target2] === 0 && (candidates[target2] & bit)) {
+                        candidates[target2] &= ~bit;
+                        progress = true;
+                    }
+                }
+            }
+        }
+    }
+    return progress;
+}
+
 // --- Generator (Synchronous) ---
 
 function generatePuzzleSync(config) {
-    const maxAttempts = 1000;
-    const timeBudgetMs = 45000;
+    const maxAttempts = config.requiredTechnique ? 5000 : 1000; // More attempts if hunting for specific technique
+    const timeBudgetMs = config.requiredTechnique ? 15000 : 45000;
     const startTime = Date.now();
     let bestResult = null;
     let bestScore = -1;
@@ -790,32 +1044,79 @@ function generatePuzzleSync(config) {
 
         // Check levels
         const maxLvl = result.analysis.maxLevel;
-        if (maxLvl <= config.maxLevel) {
-            // Additional checks for specific difficulties
-            let match = false;
+        let match = false;
+
+        // If searching a specific technique, prioritize it
+        if (config.requiredTechnique) {
+            if (result.analysis.techniquesUsed.includes(config.requiredTechnique)) {
+                return result; // Found it!
+            }
+            // Standard logic
             if (config.maxLevel <= 2) match = true;
             else if (config.maxLevel <= 4) match = (maxLvl === config.maxLevel);
-            else if (config.maxLevel === 5) match = (maxLvl >= 5);
-            else match = (maxLvl >= 6);
+            else if (config.maxLevel === 5) {
+                // Master: Allow 5 (X-Wing) or 6 (Swordfish).
+                // BUT if we have MANY X-Wings (e.g. > 3), it might feel like Extreme.
+                // However, for now let's keep it simple: Master is 5 or 6.
+                // Extreme is 7+ (XY-Wing, etc).
+                match = (maxLvl >= 5 && maxLvl <= 6);
 
-            if (match) {
-                return { puzzle: result.puzzle, solution: result.solution, analysis: result.analysis };
+                // If it's just level 5 but has > 3 X-Wings, maybe promote it? 
+                // Currently we are *filtering* what fits into Master.
+                // If it has 4 X-Wings, it's still technically level 5 logic, just tedious.
+                // So it fits Master fine. We don't want it in Extreme if Extreme requires XY-Wing (logic 7).
+            }
+            else {
+                // Extreme: Level 7+ (XY-Wing, Jellyfish, Chains...)
+                // Future proof: >= 7
+                match = (maxLvl >= 7);
+
+                // Also, if it's level 6 (Swordfish) but has A LOT of them or combined with many X-Wings,
+                // maybe we allow it in Extreme?
+                // For now, let's stick to strict logic level: Extreme = must use XY-Wing or better.
             }
 
-            // Score for best effort (try to maximize level up to target)
-            if (maxLvl > bestScore && maxLvl <= config.maxLevel) { // allow going up to limit
-                // Actually logic is: if we want Level 5, level 4 is better than 2.
-                // But current logic says: if target 5, we accept >= 5.
-                // So "bestScore" only matters if we fail to hit target.
+            if (match) return result;
+        }
+
+        // Score this result to keep the best one as fallback
+        let score = maxLvl;
+
+        // If Hunting for a specific technique
+        if (config.requiredTechnique) {
+            if (result.analysis.techniquesUsed.includes(config.requiredTechnique)) {
+                score += 100; // Found it! Big bonus.
+                // We prefer this over anything.
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestResult = result;
+                }
+            } else {
+                // Not found, but maybe it's a good candidate for later?
+                // Only if it respects the level cap.
+                // Or maybe we don't care about fallback if hunting?
+                // Actually, if seeking technique, we probably don't want a random puzzle unless explicitly allowed.
+                // But let's assume if we fail to find technique, we return best legal puzzle.
+                if (maxLvl <= config.maxLevel && maxLvl > bestScore) {
+                    bestScore = maxLvl;
+                    bestResult = result;
+                }
+            }
+        } else {
+            // Standard Mode: Strict adherence to maxLevel
+            // We want the highest level possible that is <= config.maxLevel
+            if (maxLvl <= config.maxLevel && maxLvl > bestScore) {
                 bestScore = maxLvl;
                 bestResult = result;
             }
         }
     }
 
-    if (bestResult) return { puzzle: bestResult.puzzle, solution: bestResult.solution, analysis: bestResult.analysis };
+    if (bestResult) {
+        return bestResult;
+    }
 
-    // Fallback: minimal removal
+    // Fallback: minimal removal (simple random) if everything fails
     const sol = generateSolution();
     const puz = sol.map(r => [...r]);
     // Remove naive

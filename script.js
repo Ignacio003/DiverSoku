@@ -31,6 +31,7 @@ const SudokuGame = {
         highlightSame: true,
         highlightArea: true,
         autoRemoveNotes: true,
+        validateSolution: true, // Default: validate against solution
         showHints: false, // Default: hints disabled
         theme: 'light'
     },
@@ -40,7 +41,9 @@ const SudokuGame = {
         easy: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
         medium: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
         hard: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
-        expert: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 }
+        expert: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
+        master: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
+        extreme: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 }
     },
 
     // Difficulty settings (number of cells to remove)
@@ -48,7 +51,9 @@ const SudokuGame = {
         easy: { remove: 43, name: 'Fácil', basePoints: 100, timeBonus: 500 },
         medium: { remove: 49, name: 'Medio', basePoints: 200, timeBonus: 1000 },
         hard: { remove: 53, name: 'Difícil', basePoints: 400, timeBonus: 2000 },
-        expert: { remove: 57, name: 'Experto', basePoints: 800, timeBonus: 4000 }
+        expert: { remove: 57, name: 'Experto', basePoints: 800, timeBonus: 4000 },
+        master: { remove: 59, name: 'Maestro', basePoints: 1200, timeBonus: 6000 },
+        extreme: { remove: 62, name: 'Extremo', basePoints: 1600, timeBonus: 8000 }
     },
 
     // Points configuration
@@ -402,7 +407,7 @@ function renderBoard() {
         const notes = SudokuGame.notes[row * 9 + col];
 
         // Clear previous classes
-        cell.classList.remove('fixed', 'user-input', 'conflict');
+        cell.classList.remove('fixed', 'user-input', 'conflict', 'wrong');
 
         if (value !== 0) {
             // Show value
@@ -410,10 +415,15 @@ function renderBoard() {
             cell.classList.add(isFixed ? 'fixed' : 'user-input');
             numberCount.set(value, (numberCount.get(value) || 0) + 1);
 
-            // Check for conflicts
-            if (SudokuGame.settings.showConflicts && !isFixed) {
-                if (hasConflict(row, col, value)) {
+            if (!isFixed) {
+                // Check for conflicts (duplicates in row/col/box)
+                if (SudokuGame.settings.showConflicts && hasConflict(row, col, value)) {
                     cell.classList.add('conflict');
+                }
+
+                // Validate against solution
+                if (SudokuGame.settings.validateSolution && SudokuGame.solution[row] && SudokuGame.solution[row][col] !== value) {
+                    cell.classList.add('wrong');
                 }
             }
         } else if (notes && notes.size > 0) {
@@ -977,6 +987,12 @@ function setupEventListeners() {
         saveSettings();
     });
 
+    document.getElementById('validate-solution').addEventListener('change', e => {
+        SudokuGame.settings.validateSolution = e.target.checked;
+        saveSettings();
+        renderBoard();
+    });
+
     document.getElementById('enable-hints').addEventListener('change', e => {
         SudokuGame.settings.showHints = e.target.checked;
         saveSettings();
@@ -990,7 +1006,9 @@ function setupEventListeners() {
                 easy: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
                 medium: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
                 hard: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
-                expert: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 }
+                expert: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
+                master: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
+                extreme: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 }
             };
             saveStats();
             updateStatsDisplay();
@@ -1182,8 +1200,8 @@ function applyTheme() {
  */
 function updateStatsDisplay() {
     const statsGrid = document.getElementById('stats-grid');
-    const difficulties = ['easy', 'medium', 'hard', 'expert'];
-    const names = ['Fácil', 'Medio', 'Difícil', 'Experto'];
+    const difficulties = ['easy', 'medium', 'hard', 'expert', 'master', 'extreme'];
+    const names = ['Fácil', 'Medio', 'Difícil', 'Experto', 'Maestro', 'Extremo'];
 
     let html = '';
 
@@ -1363,6 +1381,12 @@ function loadSettings() {
     document.getElementById('highlight-area').checked = SudokuGame.settings.highlightArea;
     document.getElementById('auto-remove-notes').checked = SudokuGame.settings.autoRemoveNotes;
 
+    // Validate solution setting
+    const validateCheckbox = document.getElementById('validate-solution');
+    if (validateCheckbox) {
+        validateCheckbox.checked = SudokuGame.settings.validateSolution;
+    }
+
     // Hints setting
     const hintsCheckbox = document.getElementById('enable-hints');
     if (hintsCheckbox) {
@@ -1409,7 +1433,7 @@ function loadStats() {
         try {
             const loadedStats = JSON.parse(saved);
             // Merge with default to ensure all properties exist
-            for (const diff of ['easy', 'medium', 'hard', 'expert']) {
+            for (const diff of ['easy', 'medium', 'hard', 'expert', 'master', 'extreme']) {
                 if (loadedStats[diff]) {
                     SudokuGame.stats[diff] = {
                         played: loadedStats[diff].played || 0,

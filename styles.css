@@ -414,6 +414,14 @@ button:focus-visible {
     color: var(--color-error);
 }
 
+.cell.wrong {
+    background-color: var(--color-cell-conflict);
+}
+
+.cell.wrong .cell-value {
+    color: var(--color-error);
+}
+
 @keyframes shake {
 
     0%,

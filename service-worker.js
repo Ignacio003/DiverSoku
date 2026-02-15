@@ -5,11 +5,13 @@
  * ============================================
  */
 
-const CACHE_NAME = 'diversoku-cache-v3';
+const CACHE_NAME = 'diversoku-cache-v4';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
     '/styles.css',
+    '/sudoku-engine.js',
+    '/puzzle-worker.js',
     '/script.js',
     '/manifest.json'
 ];

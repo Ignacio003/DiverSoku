@@ -38,7 +38,6 @@ const SudokuGame = {
 
     // Statistics with points
     stats: {
-        easy: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
         medium: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
         hard: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
         expert: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
@@ -46,14 +45,13 @@ const SudokuGame = {
         extreme: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 }
     },
 
-    // Difficulty settings (number of cells to remove)
+    // Difficulty settings (technique-based)
     difficultyConfig: {
-        easy: { remove: 43, name: 'Fácil', basePoints: 100, timeBonus: 500 },
-        medium: { remove: 49, name: 'Medio', basePoints: 200, timeBonus: 1000 },
-        hard: { remove: 53, name: 'Difícil', basePoints: 400, timeBonus: 2000 },
-        expert: { remove: 57, name: 'Experto', basePoints: 800, timeBonus: 4000 },
-        master: { remove: 59, name: 'Maestro', basePoints: 1200, timeBonus: 6000 },
-        extreme: { remove: 62, name: 'Extremo', basePoints: 1600, timeBonus: 8000 }
+        medium: { minRemove: 45, maxRemove: 49, maxLevel: 2, name: 'Medio', basePoints: 200, timeBonus: 1000 },
+        hard: { minRemove: 48, maxRemove: 53, maxLevel: 3, name: 'Difícil', basePoints: 400, timeBonus: 2000 },
+        expert: { minRemove: 50, maxRemove: 55, maxLevel: 4, name: 'Experto', basePoints: 800, timeBonus: 4000 },
+        master: { minRemove: 53, maxRemove: 58, maxLevel: 5, name: 'Maestro', basePoints: 1200, timeBonus: 6000 },
+        extreme: { minRemove: 55, maxRemove: 64, maxLevel: 7, name: 'Extremo', basePoints: 1600, timeBonus: 8000 }
     },
 
     // Points configuration
@@ -82,6 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateScoreDisplay();
     updateGameInfo();
 
+    // Start background puzzle generation
+    initPuzzleWorker();
+
     // Register service worker for PWA
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('service-worker.js')
@@ -91,169 +92,218 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
-// Board Generation & Solving (Backtracking)
+// Puzzle Pool — Web Worker background generation
 // ============================================
 
-/**
- * Generate a complete valid Sudoku solution using backtracking
- * @returns {number[][]} 9x9 array with complete solution
- */
-function generateSolution() {
-    const board = Array(9).fill(null).map(() => Array(9).fill(0));
-    fillBoard(board);
-    return board;
-}
+const puzzlePool = {};
+let puzzleWorker = null;
 
-/**
- * Fill the board using backtracking with randomization
- * @param {number[][]} board - The board to fill
- * @returns {boolean} True if filling was successful
- */
-function fillBoard(board) {
-    const empty = findEmptyCell(board);
-    if (!empty) return true; // Board is full
+/** Initialize the Web Worker and start pre-generating puzzles. */
+function initPuzzleWorker() {
+    try {
+        puzzleWorker = new Worker('puzzle-worker.js');
+        puzzleWorker.onmessage = function (e) {
+            const { type, difficulty, puzzle, solution, analysis } = e.data;
+            if (type === 'result') {
+                if (!puzzlePool[difficulty]) puzzlePool[difficulty] = [];
+                puzzlePool[difficulty].push({ puzzle, solution });
+                savePool(); // Save to localStorage
+                console.log(
+                    `[DiverSoku] Pool: ${difficulty} listo ` +
+                    `(${puzzlePool[difficulty].length} en pool, ` +
+                    `nivel ${analysis.maxLevel}, ` +
+                    `técnicas: [${analysis.techniquesUsed.join(', ')}])`
+                );
+                // Keep pool stocked: maintain 2 puzzles per difficulty
+                replenishPool(difficulty);
+            }
+        };
+        puzzleWorker.onerror = function (err) {
+            console.warn('[DiverSoku] Worker error:', err.message);
+        };
 
-    const [row, col] = empty;
-    const numbers = shuffleArray([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-
-    for (const num of numbers) {
-        if (isValidPlacement(board, row, col, num)) {
-            board[row][col] = num;
-            if (fillBoard(board)) return true;
-            board[row][col] = 0;
-        }
-    }
-    return false;
-}
-
-/**
- * Find the first empty cell in the board
- * @param {number[][]} board - The board to search
- * @returns {number[]|null} [row, col] or null if full
- */
-function findEmptyCell(board) {
-    for (let row = 0; row < 9; row++) {
-        for (let col = 0; col < 9; col++) {
-            if (board[row][col] === 0) return [row, col];
-        }
-    }
-    return null;
-}
-
-/**
- * Check if a number can be placed at the given position
- * @param {number[][]} board - The board
- * @param {number} row - Row index
- * @param {number} col - Column index
- * @param {number} num - Number to check
- * @returns {boolean} True if placement is valid
- */
-function isValidPlacement(board, row, col, num) {
-    // Check row
-    for (let c = 0; c < 9; c++) {
-        if (board[row][c] === num) return false;
-    }
-
-    // Check column
-    for (let r = 0; r < 9; r++) {
-        if (board[r][col] === num) return false;
-    }
-
-    // Check 3x3 box
-    const boxRow = Math.floor(row / 3) * 3;
-    const boxCol = Math.floor(col / 3) * 3;
-    for (let r = boxRow; r < boxRow + 3; r++) {
-        for (let c = boxCol; c < boxCol + 3; c++) {
-            if (board[r][c] === num) return false;
-        }
-    }
-
-    return true;
-}
-
-/**
- * Count solutions for a given board (to ensure unique solution)
- * @param {number[][]} board - The board to solve
- * @param {number} limit - Maximum solutions to find
- * @returns {number} Number of solutions found (up to limit)
- */
-function countSolutions(board, limit = 2) {
-    const boardCopy = board.map(row => [...row]);
-    let count = 0;
-
-    function solve() {
-        if (count >= limit) return;
-
-        const empty = findEmptyCell(boardCopy);
-        if (!empty) {
-            count++;
-            return;
-        }
-
-        const [row, col] = empty;
-        for (let num = 1; num <= 9; num++) {
-            if (isValidPlacement(boardCopy, row, col, num)) {
-                boardCopy[row][col] = num;
-                solve();
-                boardCopy[row][col] = 0;
+        // Start by loading any saved pool from localStorage
+        const savedPool = localStorage.getItem('diverSoku_pool');
+        if (savedPool) {
+            try {
+                const parsed = JSON.parse(savedPool);
+                // Merge saved pool into current (handling pot. new difficulties)
+                for (const diff in parsed) {
+                    if (SudokuGame.difficultyConfig[diff]) {
+                        puzzlePool[diff] = parsed[diff];
+                    }
+                }
+                console.log('[DiverSoku] Pool recuperado del disco:', puzzlePool);
+            } catch (e) {
+                console.warn('[DiverSoku] Error al cargar pool:', e);
             }
         }
-    }
 
-    solve();
-    return count;
+        // Check which pools need replenishing (hardest first)
+        const diffs = Object.keys(SudokuGame.difficultyConfig).reverse();
+        for (const diff of diffs) {
+            if (!puzzlePool[diff]) puzzlePool[diff] = [];
+            // If empty or low, request more
+            if (puzzlePool[diff].length < 2) {
+                requestPuzzleFromWorker(diff);
+            }
+        }
+    } catch (err) {
+        console.warn('[DiverSoku] Web Worker no disponible:', err.message);
+        puzzleWorker = null;
+    }
+}
+
+/** Request one puzzle from the Worker. */
+function requestPuzzleFromWorker(difficulty) {
+    if (!puzzleWorker) return;
+    const config = SudokuGame.difficultyConfig[difficulty];
+    puzzleWorker.postMessage({
+        type: 'generate',
+        difficulty,
+        config: {
+            minRemove: config.minRemove,
+            maxRemove: config.maxRemove,
+            maxLevel: config.maxLevel
+        }
+    });
+}
+
+/** Refill pool if below threshold. */
+function replenishPool(difficulty) {
+    if (!puzzlePool[difficulty]) puzzlePool[difficulty] = [];
+    if (puzzlePool[difficulty].length < 2) {
+        requestPuzzleFromWorker(difficulty);
+    }
+}
+
+// ============================================
+// Puzzle Generation (pool-first, async fallback)
+// ============================================
+
+/** Show/hide loading overlay */
+function showLoading(show, message) {
+    const overlay = document.getElementById('loading-overlay');
+    if (!overlay) return;
+    if (show) {
+        const msgEl = overlay.querySelector('.loading-message');
+        if (msgEl && message) msgEl.textContent = message;
+        overlay.classList.add('active');
+    } else {
+        overlay.classList.remove('active');
+    }
 }
 
 /**
- * Generate a puzzle with unique solution
- * @param {string} difficulty - Difficulty level
- * @returns {{puzzle: number[][], solution: number[][]}}
+ * Yield to the browser event loop (prevents UI freeze).
  */
-function generatePuzzle(difficulty) {
-    const solution = generateSolution();
-    const puzzle = solution.map(row => [...row]);
+function yieldToBrowser() {
+    return new Promise(resolve => setTimeout(resolve, 0));
+}
+
+/**
+ * Get a puzzle — tries pool first (instant), falls back to async generation.
+ * @param {string} difficulty
+ * @returns {Promise<{puzzle: number[][], solution: number[][]}>}
+ */
+async function generatePuzzle(difficulty) {
+    // Try pool first (instant!)
+    if (puzzlePool[difficulty] && puzzlePool[difficulty].length > 0) {
+        const cached = puzzlePool[difficulty].shift();
+        savePool(); // Save updated pool state
+        console.log(`[DiverSoku] Puzzle desde pool (instantáneo) — ${difficulty}`);
+        // Immediately request a replacement
+        replenishPool(difficulty);
+        return cached;
+    }
+
+    // Pool empty — generate synchronously with async yields
+    console.log(`[DiverSoku] Pool vacío para ${difficulty}, generando en hilo principal...`);
     const config = SudokuGame.difficultyConfig[difficulty];
 
-    // Create list of all cell positions and shuffle
-    const positions = [];
-    for (let r = 0; r < 9; r++) {
-        for (let c = 0; c < 9; c++) {
-            positions.push([r, c]);
+    // Give more time/attempts for harder levels
+    const isHard = ['master', 'extreme', 'expert'].includes(difficulty);
+    const maxAttempts = isHard ? 1000 : 50;
+    const timeBudgetMs = isHard ? 45000 : 5000;
+    const startTime = Date.now();
+
+    let bestResult = null;
+    let bestScore = -1;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        // Check timeout
+        if (Date.now() - startTime > timeBudgetMs) {
+            // If we have a decent fallback, stop. If not, try a bit longer for high diffs.
+            if (bestScore >= (isHard ? 3 : 1)) break;
+            if (Date.now() - startTime > timeBudgetMs * 1.5) break; // Hard limit
+        }
+
+        if (attempt > 0 && attempt % 2 === 0) await yieldToBrowser();
+
+        const result = generatePuzzleAttempt(config);
+        if (!result || !result.analysis.solved) continue;
+
+        // Exact match found? Return immediately
+        if (isLevelMatch(result.analysis, config)) {
+            console.log(
+                `[DiverSoku] Puzzle generado (intento ${attempt + 1}, ` +
+                `${Date.now() - startTime}ms): ` +
+                `${81 - result.removed} pistas, nivel ${result.analysis.maxLevel}, ` +
+                `técnicas: [${result.analysis.techniquesUsed.join(', ')}]`
+            );
+            replenishPool(difficulty);
+            return { puzzle: result.puzzle, solution: result.solution };
+        }
+
+        // Keep track of the "best" puzzle found so far (closest to target level)
+        // For Extreme (7), a level 5 is better than level 2.
+        const level = result.analysis.maxLevel;
+        // Penalize if level is too high (unlikely) or too low
+        let score = level;
+        if (level > config.maxLevel) score = -1; // Too hard (shouldn't happen with current logic)
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestResult = result;
         }
     }
+
+    if (bestResult) {
+        console.warn(
+            `[DiverSoku] Mejor puzzle encontrado: nivel ${bestResult.analysis.maxLevel}`
+        );
+        replenishPool(difficulty);
+        return { puzzle: bestResult.puzzle, solution: bestResult.solution };
+    }
+
+    // Last resort
+    console.warn('[DiverSoku] Fallback: generación simple.');
+    const solution = generateSolution();
+    const puzzle = solution.map(row => [...row]);
+    const positions = [];
+    for (let r = 0; r < 9; r++)
+        for (let c = 0; c < 9; c++)
+            positions.push([r, c]);
     shuffleArray(positions);
-
     let removed = 0;
-    const targetRemove = config.remove;
-
     for (const [row, col] of positions) {
-        if (removed >= targetRemove) break;
-
+        if (removed >= config.minRemove) break;
         const backup = puzzle[row][col];
         puzzle[row][col] = 0;
-
-        // Check if puzzle still has unique solution
-        if (countSolutions(puzzle) === 1) {
-            removed++;
-        } else {
-            puzzle[row][col] = backup;
-        }
+        if (countSolutions(puzzle) === 1) removed++;
+        else puzzle[row][col] = backup;
     }
-
+    replenishPool(difficulty);
     return { puzzle, solution };
 }
 
-/**
- * Shuffle array in place using Fisher-Yates algorithm
- * @param {Array} array - Array to shuffle
- * @returns {Array} The shuffled array
- */
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+/** Save the current pool to localStorage */
+function savePool() {
+    try {
+        localStorage.setItem('diverSoku_pool', JSON.stringify(puzzlePool));
+    } catch (e) {
+        console.warn('[DiverSoku] No se pudo guardar el pool:', e);
     }
-    return array;
 }
 
 // ============================================
@@ -526,13 +576,25 @@ function updateHighlights() {
 // ============================================
 
 /**
- * Start a new game with the given difficulty
+ * Start a new game with the given difficulty (async with loading indicator)
  * @param {string} difficulty - Difficulty level
  */
-function startNewGame(difficulty) {
+async function startNewGame(difficulty) {
     SudokuGame.difficulty = difficulty;
+    closeModal('new-game-modal');
 
-    const { puzzle, solution } = generatePuzzle(difficulty);
+    // Check if pool has a puzzle ready (instant!) or needs generation
+    const hasPooled = puzzlePool[difficulty] && puzzlePool[difficulty].length > 0;
+
+    if (!hasPooled) {
+        const diffName = SudokuGame.difficultyConfig[difficulty].name;
+        showLoading(true, `Generando puzzle (${diffName})...`);
+        await yieldToBrowser();
+    }
+
+    const { puzzle, solution } = await generatePuzzle(difficulty);
+
+    showLoading(false);
 
     SudokuGame.board = puzzle.map(row => [...row]);
     SudokuGame.solution = solution;
@@ -555,14 +617,12 @@ function startNewGame(difficulty) {
 
     // Update UI
     document.getElementById('pencil-btn').classList.remove('active');
+    document.getElementById('auto-notes-btn')?.classList.remove('active');
     updateTimerDisplay();
     updateScoreDisplay();
     startTimer();
     renderBoard();
     saveGameState();
-
-    // Close modal
-    closeModal('new-game-modal');
 }
 
 /**
@@ -786,6 +846,39 @@ function togglePencilMode() {
 }
 
 /**
+ * Auto-fill candidates (notes) for all empty cells based on current board state.
+ * Uses getCandidates from sudoku-engine.js.
+ */
+function fillAutoCandidates() {
+    if (!SudokuGame.isPlaying) return;
+
+    const cands = getCandidates(SudokuGame.board);
+    let filled = 0;
+
+    for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+            const idx = r * 9 + c;
+            if (SudokuGame.board[r][c] !== 0) continue;
+            if (cands[r][c].size === 0) continue;
+
+            // Replace existing notes with computed candidates
+            SudokuGame.notes[idx] = new Set(cands[r][c]);
+            filled++;
+        }
+    }
+
+    if (filled > 0) {
+        renderBoard();
+        saveGameState();
+        const btn = document.getElementById('auto-notes-btn');
+        if (btn) {
+            btn.classList.add('active');
+            setTimeout(() => btn.classList.remove('active'), 600);
+        }
+    }
+}
+
+/**
  * Check if the puzzle is completed correctly
  * @returns {boolean} True if puzzle is solved
  */
@@ -939,6 +1032,7 @@ function setupEventListeners() {
     document.getElementById('erase-btn').addEventListener('click', eraseCell);
     document.getElementById('pencil-btn').addEventListener('click', togglePencilMode);
     document.getElementById('hint-btn').addEventListener('click', giveHint);
+    document.getElementById('auto-notes-btn')?.addEventListener('click', fillAutoCandidates);
 
     // New game
     document.getElementById('new-game-btn').addEventListener('click', () => {
@@ -1003,7 +1097,6 @@ function setupEventListeners() {
     document.getElementById('reset-stats-btn').addEventListener('click', () => {
         if (confirm('¿Estás seguro de que deseas reiniciar las estadísticas?')) {
             SudokuGame.stats = {
-                easy: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
                 medium: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
                 hard: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
                 expert: { played: 0, won: 0, bestTime: null, bestScore: 0, totalScore: 0 },
@@ -1200,8 +1293,8 @@ function applyTheme() {
  */
 function updateStatsDisplay() {
     const statsGrid = document.getElementById('stats-grid');
-    const difficulties = ['easy', 'medium', 'hard', 'expert', 'master', 'extreme'];
-    const names = ['Fácil', 'Medio', 'Difícil', 'Experto', 'Maestro', 'Extremo'];
+    const difficulties = ['medium', 'hard', 'expert', 'master', 'extreme'];
+    const names = ['Medio', 'Difícil', 'Experto', 'Maestro', 'Extremo'];
 
     let html = '';
 
@@ -1433,7 +1526,7 @@ function loadStats() {
         try {
             const loadedStats = JSON.parse(saved);
             // Merge with default to ensure all properties exist
-            for (const diff of ['easy', 'medium', 'hard', 'expert', 'master', 'extreme']) {
+            for (const diff of ['medium', 'hard', 'expert', 'master', 'extreme']) {
                 if (loadedStats[diff]) {
                     SudokuGame.stats[diff] = {
                         played: loadedStats[diff].played || 0,

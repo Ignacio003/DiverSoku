@@ -15,10 +15,8 @@
     <link rel="manifest" href="manifest.json">
 
     <!-- Favicon & Icons -->
-    <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%236366f1'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-family='system-ui' font-weight='bold'>9</text></svg>">
-    <link rel="apple-touch-icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%236366f1'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-family='system-ui' font-weight='bold'>9</text></svg>">
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <link rel="apple-touch-icon" href="assets/logo.jpg">
 
     <title>DiverSoku</title>
     <link rel="stylesheet" href="styles.css?v=3">
@@ -131,6 +129,16 @@
                                 </svg>
                                 <span>Pista</span>
                             </button>
+                            <button class="action-btn" id="auto-notes-btn" aria-label="Auto notas">
+                                <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7" />
+                                    <rect x="14" y="3" width="7" height="7" />
+                                    <rect x="3" y="14" width="7" height="7" />
+                                    <rect x="14" y="14" width="7" height="7" />
+                                </svg>
+                                <span>Auto</span>
+                            </button>
                         </div>
 
                         <!-- Number Pad -->
@@ -168,29 +176,21 @@
             <div class="modal-body">
                 <p class="modal-text">Selecciona el nivel de dificultad:</p>
                 <div class="difficulty-buttons">
-                    <button class="difficulty-btn" data-difficulty="easy">
-                        <span class="difficulty-name">Fácil</span>
-                        <span class="difficulty-desc">38 números iniciales</span>
-                    </button>
                     <button class="difficulty-btn" data-difficulty="medium">
                         <span class="difficulty-name">Medio</span>
-                        <span class="difficulty-desc">32 números iniciales</span>
                     </button>
                     <button class="difficulty-btn" data-difficulty="hard">
                         <span class="difficulty-name">Difícil</span>
-                        <span class="difficulty-desc">28 números iniciales</span>
                     </button>
                     <button class="difficulty-btn" data-difficulty="expert">
                         <span class="difficulty-name">Experto</span>
-                        <span class="difficulty-desc">24 números iniciales</span>
                     </button>
                     <button class="difficulty-btn" data-difficulty="master">
                         <span class="difficulty-name">Maestro</span>
-                        <span class="difficulty-desc">22 números iniciales</span>
                     </button>
                     <button class="difficulty-btn" data-difficulty="extreme">
                         <span class="difficulty-name">Extremo</span>
-                        <span class="difficulty-desc">19 números iniciales</span>
+                        <span class="difficulty-desc">Este no lo haces campanilla</span>
                     </button>
                 </div>
             </div>
@@ -330,6 +330,15 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p class="loading-message">Analizando lógica...</p>
+        </div>
+    </div>
+
+    <script src="sudoku-engine.js"></script>
     <script src="script.js"></script>
 </body>
 

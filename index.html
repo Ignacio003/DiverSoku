@@ -15,8 +15,8 @@
     <link rel="manifest" href="manifest.json">
 
     <!-- Favicon & Icons -->
-    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
-    <link rel="apple-touch-icon" href="assets/logo.jpg">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="apple-touch-icon" href="assets/logo.png">
 
     <title>DiverSoku</title>
     <link rel="stylesheet" href="styles.css?v=3">
@@ -103,15 +103,6 @@
                                     <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
                                 </svg>
                                 <span>Deshacer</span>
-                            </button>
-                            <button class="action-btn" id="erase-btn" aria-label="Borrar">
-                                <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path d="M20 5H9l-7 7 7 7h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z" />
-                                    <line x1="18" y1="9" x2="12" y2="15" />
-                                    <line x1="12" y1="9" x2="18" y2="15" />
-                                </svg>
-                                <span>Borrar</span>
                             </button>
                             <button class="action-btn" id="pencil-btn" aria-label="Modo lápiz">
                                 <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -263,6 +254,16 @@
                     </div>
                     <div class="setting-item">
                         <div class="setting-info">
+                            <span class="setting-name">Notas automáticas</span>
+                            <span class="setting-desc">Mostrar botón de auto-rellenar notas</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="show-auto-notes">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
                             <span class="setting-name">Auto-borrar notas</span>
                             <span class="setting-desc">Borrar notas al colocar un número</span>
                         </div>
@@ -326,6 +327,32 @@
                     <button class="victory-btn primary" id="play-again-btn">Jugar de Nuevo</button>
                     <button class="victory-btn secondary" id="share-btn">Compartir</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Epic Campanilla (first extreme win) -->
+    <div class="modal-overlay" id="campanilla-modal">
+        <div class="modal campanilla-modal">
+            <div class="campanilla-content">
+                <div class="campanilla-sparkles">
+                    <span class="sparkle">✨</span>
+                    <span class="sparkle">⭐</span>
+                    <span class="sparkle">✨</span>
+                    <span class="sparkle">💫</span>
+                    <span class="sparkle">✨</span>
+                </div>
+                <div class="campanilla-emoji">🧚‍♀️</div>
+                <h2 class="campanilla-title">¡INCREÍBLE!</h2>
+                <p class="campanilla-msg">¿Has visto como no es tan difícil?<br>¡Vas sobrada, campanilla!</p>
+                <div class="campanilla-sparkles">
+                    <span class="sparkle">💪</span>
+                    <span class="sparkle">🔥</span>
+                    <span class="sparkle">👑</span>
+                    <span class="sparkle">🔥</span>
+                    <span class="sparkle">💪</span>
+                </div>
+                <button class="campanilla-btn" id="campanilla-close-btn">¡A por el siguiente!</button>
             </div>
         </div>
     </div>

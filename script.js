@@ -33,6 +33,7 @@ const SudokuGame = {
         autoRemoveNotes: true,
         validateSolution: true, // Default: validate against solution
         showHints: false, // Default: hints disabled
+        showAutoNotes: false, // Default: auto-notes button hidden
         theme: 'light'
     },
 
@@ -728,7 +729,8 @@ function placeNumber(num) {
 
         // Auto-remove notes in related cells
         if (SudokuGame.settings.autoRemoveNotes) {
-            removeRelatedNotes(row, col, num);
+            const removed = removeRelatedNotes(row, col, num);
+            SudokuGame.history[SudokuGame.history.length - 1].removedNotes = removed;
         }
 
         // Check for victory
@@ -775,14 +777,24 @@ function eraseCell() {
  * @param {number} num - Number to remove from notes
  */
 function removeRelatedNotes(row, col, num) {
+    const removedNotes = [];
+
     // Row
     for (let c = 0; c < 9; c++) {
-        SudokuGame.notes[row * 9 + c].delete(num);
+        const idx = row * 9 + c;
+        if (SudokuGame.notes[idx].has(num)) {
+            SudokuGame.notes[idx].delete(num);
+            removedNotes.push({ index: idx, num });
+        }
     }
 
     // Column
     for (let r = 0; r < 9; r++) {
-        SudokuGame.notes[r * 9 + col].delete(num);
+        const idx = r * 9 + col;
+        if (SudokuGame.notes[idx].has(num)) {
+            SudokuGame.notes[idx].delete(num);
+            removedNotes.push({ index: idx, num });
+        }
     }
 
     // Box
@@ -790,9 +802,15 @@ function removeRelatedNotes(row, col, num) {
     const boxCol = Math.floor(col / 3) * 3;
     for (let r = boxRow; r < boxRow + 3; r++) {
         for (let c = boxCol; c < boxCol + 3; c++) {
-            SudokuGame.notes[r * 9 + c].delete(num);
+            const idx = r * 9 + c;
+            if (SudokuGame.notes[idx].has(num)) {
+                SudokuGame.notes[idx].delete(num);
+                removedNotes.push({ index: idx, num });
+            }
         }
     }
+
+    return removedNotes;
 }
 
 /**
@@ -823,10 +841,17 @@ function undo() {
     if (SudokuGame.history.length === 0 || !SudokuGame.isPlaying) return;
 
     const action = SudokuGame.history.pop();
-    const { row, col, value, notes } = action;
+    const { row, col, value, notes, removedNotes } = action;
 
     SudokuGame.board[row][col] = value;
     SudokuGame.notes[row * 9 + col] = new Set(notes);
+
+    // Restore notes that were auto-removed from related cells
+    if (removedNotes) {
+        for (const { index, num } of removedNotes) {
+            SudokuGame.notes[index].add(num);
+        }
+    }
 
     SudokuGame.selectedCell = [row, col];
 
@@ -866,7 +891,8 @@ function giveHint() {
 
     // Auto-remove related notes
     if (SudokuGame.settings.autoRemoveNotes) {
-        removeRelatedNotes(row, col, correctValue);
+        const removed = removeRelatedNotes(row, col, correctValue);
+        SudokuGame.history[SudokuGame.history.length - 1].removedNotes = removed;
     }
 
     SudokuGame.selectedCell = [row, col];
@@ -995,7 +1021,19 @@ function handleVictory() {
         recordElement.style.display = 'none';
     }
 
-    openModal('victory-modal');
+    // First extreme victory: show epic campanilla modal BEFORE the normal victory modal
+    const extremeMsgShown = localStorage.getItem('diverSoku_extremeMsgShown');
+    if (difficulty === 'extreme' && !extremeMsgShown) {
+        localStorage.setItem('diverSoku_extremeMsgShown', 'true');
+        openModal('campanilla-modal');
+        // When campanilla is closed, show normal victory modal
+        document.getElementById('campanilla-close-btn').onclick = () => {
+            closeModal('campanilla-modal');
+            openModal('victory-modal');
+        };
+    } else {
+        openModal('victory-modal');
+    }
 }
 
 // ============================================
@@ -1080,7 +1118,7 @@ function setupEventListeners() {
 
     // Action buttons
     document.getElementById('undo-btn').addEventListener('click', undo);
-    document.getElementById('erase-btn').addEventListener('click', eraseCell);
+    document.getElementById('erase-btn')?.addEventListener('click', eraseCell);
     document.getElementById('pencil-btn').addEventListener('click', togglePencilMode);
     document.getElementById('hint-btn').addEventListener('click', giveHint);
     document.getElementById('auto-notes-btn')?.addEventListener('click', fillAutoCandidates);
@@ -1142,6 +1180,12 @@ function setupEventListeners() {
         SudokuGame.settings.showHints = e.target.checked;
         saveSettings();
         toggleHintButton(SudokuGame.settings.showHints);
+    });
+
+    document.getElementById('show-auto-notes').addEventListener('change', e => {
+        SudokuGame.settings.showAutoNotes = e.target.checked;
+        saveSettings();
+        toggleAutoNotesButton(SudokuGame.settings.showAutoNotes);
     });
 
     // Reset stats
@@ -1538,7 +1582,12 @@ function loadSettings() {
     }
     toggleHintButton(SudokuGame.settings.showHints);
 
-    toggleHintButton(SudokuGame.settings.showHints);
+    // Auto-notes setting
+    const autoNotesCheckbox = document.getElementById('show-auto-notes');
+    if (autoNotesCheckbox) {
+        autoNotesCheckbox.checked = SudokuGame.settings.showAutoNotes;
+    }
+    toggleAutoNotesButton(SudokuGame.settings.showAutoNotes);
 
     // Theme setting
     const themeCheckbox = document.getElementById('theme-toggle-setting');
@@ -1557,6 +1606,17 @@ function toggleHintButton(show) {
     const hintBtn = document.getElementById('hint-btn');
     if (hintBtn) {
         hintBtn.style.display = show ? 'flex' : 'none';
+    }
+}
+
+/**
+ * Show or hide the auto-notes button
+ * @param {boolean} show - Whether to show the button
+ */
+function toggleAutoNotesButton(show) {
+    const btn = document.getElementById('auto-notes-btn');
+    if (btn) {
+        btn.style.display = show ? 'flex' : 'none';
     }
 }
 

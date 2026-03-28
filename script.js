@@ -971,6 +971,101 @@ function checkVictory() {
 }
 
 /**
+ * Pool of cursi messages for victory celebrations.
+ * Organised by difficulty tier for contextual flair.
+ */
+const CURSI_MESSAGES = {
+    // Messages for medium difficulty
+    medium: [
+        { emoji: '🌸', title: '¡OLE TÚ!', msg: '¡Eso ha sido coser y cantar!<br>Qué crack eres, campanilla 💅', sparklesTop: ['🌷', '✨', '🌸', '✨', '🌷'], sparklesBottom: ['💖', '🌟', '💐', '🌟', '💖'], btn: '¡Vamos a por otro!' },
+        { emoji: '😍', title: '¡QUÉ FÁCIL!', msg: '¡Lo has hecho sin despeinarte!<br>Eres pura magia ✨', sparklesTop: ['⭐', '💫', '⭐', '💫', '⭐'], sparklesBottom: ['🎀', '💝', '🎀', '💝', '🎀'], btn: '¡Dame más!' },
+        { emoji: '💃', title: '¡TOMA YA!', msg: 'Pan comido para ti, ¿verdad?<br>¡Eres una máquina, guapa!', sparklesTop: ['🔥', '💃', '🔥', '💃', '🔥'], sparklesBottom: ['👏', '🌟', '👏', '🌟', '👏'], btn: '¡Siguiente!' },
+        { emoji: '🦋', title: '¡FACILÍSIMO!', msg: 'Lo has resuelto como si nada.<br>¡Normal, si eres la mejor!', sparklesTop: ['🦋', '✨', '🌺', '✨', '🦋'], sparklesBottom: ['💪', '🌈', '💪', '🌈', '💪'], btn: '¡Otro más!' },
+        { emoji: '🌈', title: '¡GENIAL!', msg: '¿Seguro que no eres una genia?<br>Porque lo pareces 💕', sparklesTop: ['🌈', '⭐', '🌈', '⭐', '🌈'], sparklesBottom: ['🎉', '💖', '🎉', '💖', '🎉'], btn: '¡A por otro!' },
+        { emoji: '🧁', title: '¡QUÉ RICA!', msg: '¡Más dulce que un cupcake!<br>Y más lista también 🧠', sparklesTop: ['🧁', '🍰', '🧁', '🍰', '🧁'], sparklesBottom: ['💗', '✨', '💗', '✨', '💗'], btn: '¡Repito!' },
+    ],
+    // Messages for hard difficulty
+    hard: [
+        { emoji: '💪', title: '¡BRAVO!', msg: '¡Dificultad difícil y ni has pestañeado!<br>Menuda eres, campanilla 🔥', sparklesTop: ['🔥', '⭐', '🔥', '⭐', '🔥'], sparklesBottom: ['💪', '👑', '💪', '👑', '💪'], btn: '¡Vamos!' },
+        { emoji: '🌟', title: '¡ESTRELLA!', msg: '¡Brillas más que el sol!<br>¿Hay algo que no sepas hacer? 💫', sparklesTop: ['🌟', '✨', '🌟', '✨', '🌟'], sparklesBottom: ['🎆', '💝', '🎆', '💝', '🎆'], btn: '¡A brillar más!' },
+        { emoji: '🏋️‍♀️', title: '¡QUÉ FUERZA!', msg: 'El difícil no es rival para ti.<br>¡Eres imparable! 🚀', sparklesTop: ['💥', '🏋️‍♀️', '💥', '🏋️‍♀️', '💥'], sparklesBottom: ['🌟', '💪', '🌟', '💪', '🌟'], btn: '¡Más fuerte!' },
+        { emoji: '🎯', title: '¡DIANA!', msg: 'Ni un fallo, ni una duda.<br>¡Precisión de relojera suiza! ⌚', sparklesTop: ['🎯', '💫', '🎯', '💫', '🎯'], sparklesBottom: ['👌', '✨', '👌', '✨', '👌'], btn: '¡Otro tiro!' },
+        { emoji: '🦸‍♀️', title: '¡HEROÍNA!', msg: 'El sudoku temblaba de miedo<br>al ver que lo ibas a hacer tú 😎', sparklesTop: ['🦸‍♀️', '⭐', '🦸‍♀️', '⭐', '🦸‍♀️'], sparklesBottom: ['💥', '🔥', '💥', '🔥', '💥'], btn: '¡Siguiente misión!' },
+        { emoji: '👸', title: '¡PRINCESA!', msg: 'Resuelves sudokus con la elegancia<br>de una princesa Disney 👑', sparklesTop: ['👸', '💎', '👸', '💎', '👸'], sparklesBottom: ['✨', '🏰', '✨', '🏰', '✨'], btn: '¡Más aventuras!' },
+    ],
+    // Messages for expert difficulty
+    expert: [
+        { emoji: '🧠', title: '¡CEREBRITO!', msg: '¡Nivel experto y lo has bordado!<br>Tu cerebro es de otro planeta 🪐', sparklesTop: ['🧠', '💫', '🧠', '💫', '🧠'], sparklesBottom: ['🔥', '⭐', '🔥', '⭐', '🔥'], btn: '¡Sigue así!' },
+        { emoji: '🚀', title: '¡DESPEGAMOS!', msg: '¡Esa mente tuya no tiene límites!<br>NASA te quiere fichar 🌌', sparklesTop: ['🚀', '🌟', '🚀', '🌟', '🚀'], sparklesBottom: ['💫', '⭐', '💫', '⭐', '💫'], btn: '¡A la luna!' },
+        { emoji: '🏆', title: '¡CAMPEONA!', msg: 'El nivel experto es pan comido<br>cuando eres TÚ la que juega 👑', sparklesTop: ['🏆', '✨', '🏆', '✨', '🏆'], sparklesBottom: ['🥇', '🔥', '🥇', '🔥', '🥇'], btn: '¡Al podio!' },
+        { emoji: '🎓', title: '¡DOCTORA!', msg: 'Con esa cabeza podrías resolver<br>el misterio del universo 🌌✨', sparklesTop: ['🎓', '📚', '🎓', '📚', '🎓'], sparklesBottom: ['🧪', '💡', '🧪', '💡', '🧪'], btn: '¡Más retos!' },
+        { emoji: '💎', title: '¡DIAMANTE!', msg: 'Brillante, preciosa y dura de roer.<br>¡Como tú, campanilla! 💍', sparklesTop: ['💎', '✨', '💎', '✨', '💎'], sparklesBottom: ['👑', '🌟', '👑', '🌟', '👑'], btn: '¡A brillar!' },
+        { emoji: '🔬', title: '¡GENIA!', msg: 'Einstein estaría flipando contigo.<br>¡Menudo cerebro tienes! 🤯', sparklesTop: ['🔬', '💡', '🔬', '💡', '🔬'], sparklesBottom: ['⚡', '🧠', '⚡', '🧠', '⚡'], btn: '¡Más ciencia!' },
+    ],
+    // Messages for master difficulty
+    master: [
+        { emoji: '👑', title: '¡REINA!', msg: '¡Nivel MAESTRO completado!<br>No eres una reina, eres LA REINA 👑', sparklesTop: ['👑', '💎', '👑', '💎', '👑'], sparklesBottom: ['🔥', '✨', '🔥', '✨', '🔥'], btn: '¡A reinar!' },
+        { emoji: '🔮', title: '¡MÁGICO!', msg: 'Eso no ha sido resolver un sudoku,<br>ha sido BRUJERÍA pura 🧹✨', sparklesTop: ['🔮', '🌙', '🔮', '🌙', '🔮'], sparklesBottom: ['⭐', '🪄', '⭐', '🪄', '⭐'], btn: '¡Más magia!' },
+        { emoji: '🐉', title: '¡DOMADORA!', msg: 'Has domado al dragón del nivel maestro.<br>¡Eres Daenerys versión sudoku! 🔥', sparklesTop: ['🐉', '🔥', '🐉', '🔥', '🐉'], sparklesBottom: ['⚔️', '👑', '⚔️', '👑', '⚔️'], btn: '¡Más dragones!' },
+        { emoji: '🌙', title: '¡DIOSA!', msg: 'Ese nivel era imposible… para los mortales.<br>¡Tú eres una diosa! 🌟', sparklesTop: ['🌙', '⭐', '🌙', '⭐', '🌙'], sparklesBottom: ['✨', '🌟', '✨', '🌟', '✨'], btn: '¡Sigue reinando!' },
+        { emoji: '🧙‍♀️', title: '¡HECHICERA!', msg: '¿Cómo lo haces?<br>¡Esto es magia negra, campanilla! 🖤✨', sparklesTop: ['🧙‍♀️', '🌟', '🧙‍♀️', '🌟', '🧙‍♀️'], sparklesBottom: ['🔮', '💫', '🔮', '💫', '🔮'], btn: '¡Más hechizos!' },
+        { emoji: '⚡', title: '¡RAYO!', msg: 'Has resuelto esto a la velocidad del rayo.<br>¡Eres eléctrica, campanilla! ⚡', sparklesTop: ['⚡', '🌩️', '⚡', '🌩️', '⚡'], sparklesBottom: ['💥', '🔥', '💥', '🔥', '💥'], btn: '¡Más voltaje!' },
+    ],
+    // Messages for extreme difficulty
+    extreme: [
+        { emoji: '🧚‍♀️', title: '¡INCREÍBLE!', msg: '¿Has visto como no es tan difícil?<br>¡Vas sobrada, campanilla!', sparklesTop: ['✨', '⭐', '✨', '💫', '✨'], sparklesBottom: ['💪', '🔥', '👑', '🔥', '💪'], btn: '¡A por el siguiente!' },
+        { emoji: '🦄', title: '¡LEYENDA!', msg: '¡NIVEL EXTREMO!<br>Eres un unicornio: única e irrepetible ✨', sparklesTop: ['🦄', '🌈', '🦄', '🌈', '🦄'], sparklesBottom: ['⭐', '💎', '⭐', '💎', '⭐'], btn: '¡Soy leyenda!' },
+        { emoji: '🌋', title: '¡EXPLOSIVA!', msg: 'El nivel extremo acaba de explotar<br>por la fuerza de tu cerebro 🤯💥', sparklesTop: ['🌋', '💥', '🌋', '💥', '🌋'], sparklesBottom: ['🔥', '⚡', '🔥', '⚡', '🔥'], btn: '¡Otra explosión!' },
+        { emoji: '🏅', title: '¡ORO PURO!', msg: '¡Medalla de oro para la campeona!<br>No hay nadie como tú, campanilla 🥇', sparklesTop: ['🏅', '🥇', '🏅', '🥇', '🏅'], sparklesBottom: ['🎆', '🎇', '🎆', '🎇', '🎆'], btn: '¡Más medallas!' },
+        { emoji: '🪐', title: '¡DE OTRO MUNDO!', msg: 'Nivel extremo completado.<br>¡Esa cabecita tuya es de otro planeta! 🌌', sparklesTop: ['🪐', '🌟', '🪐', '🌟', '🪐'], sparklesBottom: ['🚀', '💫', '🚀', '💫', '🚀'], btn: '¡Al infinito!' },
+        { emoji: '🎪', title: '¡MAGIA PURA!', msg: 'Esto no lo hace cualquiera.<br>¡Es que eres espectacular, campanilla! 🎩✨', sparklesTop: ['🎪', '🌟', '🎪', '🌟', '🎪'], sparklesBottom: ['🪄', '✨', '🪄', '✨', '🪄'], btn: '¡Más magia!' },
+        { emoji: '💘', title: '¡ME ENAMORAS!', msg: 'El extremo no tenía nada que hacer<br>contra ti. ¡Eres AMOR puro! 💕', sparklesTop: ['💘', '💝', '💘', '💝', '💘'], sparklesBottom: ['❤️‍🔥', '✨', '❤️‍🔥', '✨', '❤️‍🔥'], btn: '¡Con cariño!' },
+        { emoji: '🗡️', title: '¡GUERRERA!', msg: 'El nivel extremo ha caído ante tu espada.<br>¡Eres la guerrera definitiva! ⚔️', sparklesTop: ['🗡️', '🛡️', '🗡️', '🛡️', '🗡️'], sparklesBottom: ['🔥', '⚡', '🔥', '⚡', '🔥'], btn: '¡A la batalla!' },
+    ],
+    // Generic messages that can appear on any difficulty
+    generic: [
+        { emoji: '🥰', title: '¡MARAVILLOSA!', msg: '¡Lo has conseguido otra vez!<br>No me canso de verte ganar 💖', sparklesTop: ['💕', '✨', '💕', '✨', '💕'], sparklesBottom: ['🌸', '💝', '🌸', '💝', '🌸'], btn: '¡Otra vez!' },
+        { emoji: '🎉', title: '¡FIESTA!', msg: '¡Esto hay que celebrarlo!<br>¡Eres la reina de los sudokus! 🎊', sparklesTop: ['🎉', '🎊', '🎉', '🎊', '🎉'], sparklesBottom: ['🥳', '🎈', '🥳', '🎈', '🥳'], btn: '¡De fiesta!' },
+        { emoji: '🦊', title: '¡LISTILLA!', msg: 'Más lista que un zorro.<br>¡No se te escapa ni una, campanilla! 🧠', sparklesTop: ['🦊', '🌟', '🦊', '🌟', '🦊'], sparklesBottom: ['✨', '💫', '✨', '💫', '✨'], btn: '¡Soy la mejor!' },
+        { emoji: '🌺', title: '¡PRECIOSA!', msg: 'Tan bonita como inteligente.<br>¡El combo perfecto! 💐', sparklesTop: ['🌺', '🌸', '🌺', '🌸', '🌺'], sparklesBottom: ['💮', '🌼', '💮', '🌼', '💮'], btn: '¡Gracias, ¿no?' },
+        { emoji: '🍀', title: '¡SUERTE NO!', msg: 'Eso no ha sido suerte.<br>¡Ha sido puro TALENTO, campanilla! 🧠✨', sparklesTop: ['🍀', '⭐', '🍀', '⭐', '🍀'], sparklesBottom: ['💪', '🌟', '💪', '🌟', '💪'], btn: '¡Talento puro!' },
+        { emoji: '🫶', title: '¡TE QUIERO!', msg: '¡Cada vez que ganas me enamoro más!<br>¡Eres lo mejor del mundo! 💗', sparklesTop: ['🫶', '💕', '🫶', '💕', '🫶'], sparklesBottom: ['💖', '💝', '💖', '💝', '💖'], btn: '¡Yo también!' },
+        { emoji: '🐝', title: '¡TRABAJADORA!', msg: 'Más trabajadora que una abejita.<br>¡Y más dulce que su miel! 🍯', sparklesTop: ['🐝', '🌻', '🐝', '🌻', '🐝'], sparklesBottom: ['🍯', '✨', '🍯', '✨', '🍯'], btn: '¡Buzz buzz!' },
+        { emoji: '✈️', title: '¡IMPARABLE!', msg: '¡No hay sudoku que se te resista!<br>¡Vas como un avión, guapa! ✈️💨', sparklesTop: ['✈️', '☁️', '✈️', '☁️', '✈️'], sparklesBottom: ['💨', '🌟', '💨', '🌟', '💨'], btn: '¡Despegamos!' },
+        { emoji: '🎵', title: '¡VIRTUOSA!', msg: 'Has resuelto esto con la gracia<br>de una sinfonía perfecta 🎶💕', sparklesTop: ['🎵', '🎶', '🎵', '🎶', '🎵'], sparklesBottom: ['🎼', '✨', '🎼', '✨', '🎼'], btn: '¡Bis, bis!' },
+        { emoji: '🌻', title: '¡MI SOL!', msg: 'Eres como un girasol:<br>iluminas todo lo que tocas 🌞💛', sparklesTop: ['🌻', '☀️', '🌻', '☀️', '🌻'], sparklesBottom: ['🌞', '✨', '🌞', '✨', '🌞'], btn: '¡Brillo más!' },
+    ]
+};
+
+/**
+ * Pick a random cursi message appropriate for the current difficulty
+ */
+function getRandomCursiMessage(difficulty) {
+    // 60% chance of difficulty-specific message, 40% generic
+    const useSpecific = Math.random() < 0.6;
+    const pool = useSpecific
+        ? (CURSI_MESSAGES[difficulty] || CURSI_MESSAGES.generic)
+        : CURSI_MESSAGES.generic;
+    return pool[Math.floor(Math.random() * pool.length)];
+}
+
+/**
+ * Populate the campanilla modal with a cursi message
+ */
+function showCursiModal(message) {
+    document.getElementById('campanilla-emoji').textContent = message.emoji;
+    document.getElementById('campanilla-title').textContent = message.title;
+    document.getElementById('campanilla-msg').innerHTML = message.msg;
+    document.getElementById('campanilla-close-btn').textContent = message.btn;
+
+    // Sparkles
+    const topEl = document.getElementById('campanilla-sparkles-top');
+    const bottomEl = document.getElementById('campanilla-sparkles-bottom');
+    topEl.innerHTML = message.sparklesTop.map(s => `<span class="sparkle">${s}</span>`).join('');
+    bottomEl.innerHTML = message.sparklesBottom.map(s => `<span class="sparkle">${s}</span>`).join('');
+}
+
+/**
  * Handle victory state
  */
 function handleVictory() {
@@ -1021,19 +1116,16 @@ function handleVictory() {
         recordElement.style.display = 'none';
     }
 
-    // First extreme victory: show epic campanilla modal BEFORE the normal victory modal
-    const extremeMsgShown = localStorage.getItem('diverSoku_extremeMsgShown');
-    if (difficulty === 'extreme' && !extremeMsgShown) {
-        localStorage.setItem('diverSoku_extremeMsgShown', 'true');
-        openModal('campanilla-modal');
-        // When campanilla is closed, show normal victory modal
-        document.getElementById('campanilla-close-btn').onclick = () => {
-            closeModal('campanilla-modal');
-            openModal('victory-modal');
-        };
-    } else {
+    // Always show cursi campanilla modal BEFORE the normal victory modal
+    const cursiMsg = getRandomCursiMessage(difficulty);
+    showCursiModal(cursiMsg);
+    openModal('campanilla-modal');
+
+    // When campanilla is closed, show normal victory modal
+    document.getElementById('campanilla-close-btn').onclick = () => {
+        closeModal('campanilla-modal');
         openModal('victory-modal');
-    }
+    };
 }
 
 // ============================================
